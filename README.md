@@ -1,5 +1,7 @@
 # Growing ("Stepper") Form for Titanium
 
+<img src="./screenshots/screenshot.png" width="900" alt="Example" />
+
 A form that expands / collapses based on the current input field. Also known as "growing form" or "stepper form".
 
 ⚠️ This project is currently work in progress and should not be used in production so far.

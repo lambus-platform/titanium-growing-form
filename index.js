@@ -39,7 +39,7 @@ class GrowingForm {
 
 		// Style the root view with optional overrides
 		const overrides = configuration.overrides || {};
-		Object.assign(this.formView, overrides, this.formView);
+		this.formView.applyProperties(overrides);
 
 		// Set the initial expanded data
 		this.expandedIndex = 0;
@@ -237,6 +237,8 @@ class GrowingForm {
 			left: 0,
 			width: 280,
 			height: 40,
+			color: '#000',
+			hintTextColor: '#bebebe',
 			padding: { left: 16 },
 			borderRadius: 4,
 			backgroundColor: '#eee'
@@ -244,12 +246,11 @@ class GrowingForm {
 
 		// Reference a reference in our scope to blur it, if it is the last form input
 		this.currentTextField = textField;
+		textField.applyProperties(options);
 
 		textField.addEventListener('change', event => {
 			this.formData[identifier] = event.value;
 		});
-
-		Object.assign(textField, options, textField);
 
 		return textField;
 	}
@@ -258,6 +259,7 @@ class GrowingForm {
 		const titleLabel = Ti.UI.createLabel({
 			top: 6,
 			left: 0,
+			color: '#000',
 			text: title
 		});
 
@@ -266,7 +268,7 @@ class GrowingForm {
 
 	_createActionButton(itemIndex, options = {}) {
 		const actionButton = Ti.UI.createButton({
-			title: L('Continue'),
+			title: L('Continue', 'Continue'),
 			width: 120,
 			height: 40,
 			borderRadius: 20,
@@ -277,7 +279,7 @@ class GrowingForm {
 		});
 
 		if (itemIndex === this.cells.length - 1) {
-			actionButton.title = L('Submit');
+			actionButton.title = L('Submit', 'Submit');
 			actionButton.backgroundColor = this.options.submitButtonBackgroundColor;
 		}
 
