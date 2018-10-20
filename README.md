@@ -17,12 +17,14 @@ import { GrowingForm, GrowingFormFieldType } from 'ti.growingform';
 const config = {
 	cells: [{
 		title: 'Your Username',
+		identifier: 'username',
 		type: GrowingFormFieldType.TEXT,
 		options: {
 			hintText: 'Enter username ...'
 		}
 	}, {
 		title: 'Your Mail address',
+		identifier: 'email',
 		type: GrowingFormFieldType.TEXT,
 		options: {
 			keyboardType: Ti.UI.KEYBOARD_TYPE_EMAIL,
@@ -30,12 +32,19 @@ const config = {
 		}
 	}, {
 		title: 'Your Password',
+		identifier: 'password',
 		type: GrowingFormFieldType.TEXT,
 		options: {
 			passwordMask: true,
 			hintText: 'Enter password ...'
 		}
 	}],
+	options: {
+		bulletInactiveBackgroundColor: '#666',
+		bulletActiveBackgroundColor: '#000',
+		stepButtonBackgroundColor: '#333',
+		submitButtonBackgroundColor: 'orange'
+	},
 	overrides: {
 		// backgroundColor: 'green'
 	} 
@@ -43,10 +52,8 @@ const config = {
 
 const growingForm = new GrowingForm({ configuration: config });
 
-growingForm.on('submit', (data, err) => {
-	if (err) throw err;
-
-	Ti.API.info(`Finished form! Data: ${data}`)
+growingForm.on('submit', data => {
+	Ti.API.info(`Finished form! Data: ${JSON.stringify(data)}`)
 });
 
 growingForm.on('step', index => {
