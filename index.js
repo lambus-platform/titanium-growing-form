@@ -5,6 +5,7 @@ const GrowingFormLayoutDimension = {
 	CONTENT_RIGHT_MARGIN: 8,
 	CONTENT_TOP_MARGIN: 0,
 	CONTENT_BOTTOM_MARGIN: 16,
+	CONTENT_INACTIVE_BOTTOM_MARGIN: 32
 };
 
 const GrowingFormEvent = {
@@ -151,7 +152,7 @@ class GrowingForm {
 		const contentView = Ti.UI.createView({
 			top: GrowingFormLayoutDimension.CONTENT_TOP_MARGIN,
 			right: GrowingFormLayoutDimension.CONTENT_RIGHT_MARGIN,
-			bottom: GrowingFormLayoutDimension.CONTENT_BOTTOM_MARGIN,
+			bottom: isExpanded ? GrowingFormLayoutDimension.CONTENT_BOTTOM_MARGIN : GrowingFormLayoutDimension.CONTENT_INACTIVE_BOTTOM_MARGIN,
 			left: GrowingFormLayoutDimension.CONTENT_LEFT_MARGIN,
 			height: Ti.UI.SIZE,
 			layout: 'vertical',
