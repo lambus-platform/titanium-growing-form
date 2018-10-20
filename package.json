@@ -1,0 +1,12 @@
+{
+  "name": "ti.growingform",
+  "version": "1.0.0",
+  "description": "A growing (\"stepper\") form for Appcelerator Titanium.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["titanium", "growing form", "stepper form", "native"],
+  "author": "Hans Knöchel (h.knoechel@lambus.io)",
+  "license": "MIT"
+}
