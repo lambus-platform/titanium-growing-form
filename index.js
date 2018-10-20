@@ -37,6 +37,9 @@ class GrowingForm {
 		// Initialize the form-data
 		this.formData = {};
 
+		// This flag is used to block UI interactions after submitting the form
+		this.locked = false;
+
 		// Style the root view with optional overrides
 		const overrides = configuration.overrides || {};
 		this.formView.applyProperties(overrides);
@@ -124,6 +127,14 @@ class GrowingForm {
 		view.add(this.formView);
 	}
 
+	lock() {
+		this.locked = true;
+	}
+
+	unlock() {
+		this.locked = false;
+	}
+
 	_createContentView(cell, itemIndex = -1, isExpanded) {
 		const title = cell.title;
 		const type = cell.type;
@@ -148,6 +159,7 @@ class GrowingForm {
 
 		contentView.add(this._createTitleLabel(title));
 
+		// Only add content if expanded
 		if (isExpanded) {
 			switch (type) {
 				case GrowingFormFieldType.TEXT: {
@@ -171,6 +183,20 @@ class GrowingForm {
 			separatorLine.height = event.source.rect.height.toFixed(0);
 		});
 
+		// Make previous cells expandable (for later form entries)
+		if (!isExpanded && itemIndex <= this.expandedIndex && !this.locked) {
+			containerView.addEventListener('click', () => {
+				// Since the event listener is async, the locking can change between
+				// rendering the forms and interacting with it
+				if (this.locked) {
+					return;
+				}
+
+				this.expandedIndex = itemIndex;
+				this._configureData();
+			});
+		}
+
 		const bulletView = Ti.UI.createView({
 			width: 36,
 			height: 36,
@@ -193,7 +219,7 @@ class GrowingForm {
 
 		bulletView.add(Ti.UI.createLabel({
 			text: `${itemIndex + 1}`,
-			color: '#fff',
+			color: isExpanded ? this.options.bulletActiveTextColor : this.options.bulletInactiveTextColor,
 			font: {
 				fontSize: 12
 			}
@@ -221,6 +247,7 @@ class GrowingForm {
 			if (this.callbacks[GrowingFormEvent.SUBMIT]) {
 				this.callbacks[GrowingFormEvent.SUBMIT](this.formData);
 			}
+			this.locked = true;
 			return;
 			// If not, yet, trigger the "step" callback
 		} else if (this.callbacks[GrowingFormEvent.STEP]) {
@@ -241,7 +268,8 @@ class GrowingForm {
 			hintTextColor: '#bebebe',
 			padding: { left: 16 },
 			borderRadius: 4,
-			backgroundColor: '#eee'
+			backgroundColor: '#eee',
+			value: this.formData[identifier] || ''
 		});
 
 		// Reference a reference in our scope to blur it, if it is the last form input
@@ -268,19 +296,21 @@ class GrowingForm {
 
 	_createActionButton(itemIndex, options = {}) {
 		const actionButton = Ti.UI.createButton({
-			title: L('Continue', 'Continue'),
+			title: this.options.stepButtonTitle || L('Continue', 'Continue'),
 			width: 120,
 			height: 40,
-			borderRadius: 20,
+			borderRadius: this.options.stepButtonBorderRadius,
 			backgroundColor: this.options.stepButtonBackgroundColor,
-			color: '#fff',
+			color: this.options.stepButtonTextColor,
 			top: 10,
 			left: 0
 		});
 
 		if (itemIndex === this.cells.length - 1) {
-			actionButton.title = L('Submit', 'Submit');
+			actionButton.title = this.options.submitButtonTitle || L('Submit', 'Submit');
 			actionButton.backgroundColor = this.options.submitButtonBackgroundColor;
+			actionButton.color = this.options.submitButtonTextColor;
+			actionButton.borderRadius = this.options.submitButtonBorderRadius;
 		}
 
 		actionButton.addEventListener('click', options.onClick);

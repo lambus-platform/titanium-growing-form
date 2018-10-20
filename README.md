@@ -42,15 +42,29 @@ const config = {
 		}
 	}],
 	options: {
+		// Bullets
 		bulletInactiveBackgroundColor: '#666',
+		bulletInactiveTextColor: '#fff',
 		bulletActiveBackgroundColor: '#000',
+		bulletActiveTextColor: '#fff',
+
+		// Step button (aka "Continue")
+		stepButtonTitle: L('Continue', 'Continue'),
 		stepButtonBackgroundColor: '#333',
-		submitButtonBackgroundColor: 'orange'
+		stepButtonTextColor: '#fff',
+		stepButtonBorderRadius: 20,
+
+		// Step button (aka "Submit")
+		submitButtonTitle: L('Submit', 'Submit'),
+		submitButtonBackgroundColor: 'orange',
+		submitButtonTextColor: '#fff',
+		submitButtonBorderRadius: 20
 	},
 	overrides: {
-		// backgroundColor: 'green'
+		// backgroundColor: 'green',
+		top: 50
 	} 
-}
+};
 
 const growingForm = new GrowingForm({ configuration: config });
 
