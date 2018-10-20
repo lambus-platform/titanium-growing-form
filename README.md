@@ -12,21 +12,28 @@ A form that expands / collapses based on the current input field. Also known as 
 ## Example
 
 ```js
-import { GrowingForm, GrowingFormFieldType } from 'ti.growingform'
+import { GrowingForm, GrowingFormFieldType } from 'ti.growingform';
 
 const config = {
 	cells: [{
-		title: 'Enter Username',
+		title: 'Your Username',
 		type: GrowingFormFieldType.TEXT,
 		options: {
-			hintText: 'Your username ...'
+			hintText: 'Enter username ...'
 		}
 	}, {
-		title: 'Enter Mail',
+		title: 'Your Mail address',
 		type: GrowingFormFieldType.TEXT,
 		options: {
 			keyboardType: Ti.UI.KEYBOARD_TYPE_EMAIL,
-			hintText: 'Your mail ...'
+			hintText: 'Enter mail address ...'
+		}
+	}, {
+		title: 'Your Password',
+		type: GrowingFormFieldType.TEXT,
+		options: {
+			passwordMask: true,
+			hintText: 'Enter password ...'
 		}
 	}],
 	overrides: {
@@ -35,6 +42,17 @@ const config = {
 }
 
 const growingForm = new GrowingForm({ configuration: config });
+
+growingForm.on('submit', (data, err) => {
+	if (err) throw err;
+
+	Ti.API.info(`Finished form! Data: ${data}`)
+});
+
+growingForm.on('step', index => {
+	Ti.API.info(`Stepped to ${index}`)
+});
+
 growingForm.render({ view: $.index });
 ```
 

@@ -7,6 +7,11 @@ const GrowingFormLayoutDimension = {
     CONTENT_BOTTOM_MARGIN: 16,
 }
 
+const GrowingFormEvent = {
+    STEP: 'step',
+    SUBMIT: 'submit'
+};
+
 class GrowingForm {
 
     constructor(options = {}) {
@@ -24,11 +29,43 @@ class GrowingForm {
         const overrides = configuration.overrides || {};
         Object.assign(this.formView, overrides, this.formView);
 
-        // Configure the cells
+        // Set the initial expanded data
+        this.expandedIndex = 0;
+        this.cells = cells;
+        
+        // Configure the callbacks object to be used by "on" and "off" methods
+        this.callbacks = {};
+
+        // Create the container table-view with our data source
+        this.tableView = Ti.UI.createTableView({ 
+            separatorStyle: Ti.UI.TABLE_VIEW_SEPARATOR_STYLE_NONE,
+            selectionStyle: 0
+        });
+        this.formView.add(this.tableView);
+
+        // Configure the initial data set
+        this._configureData();
+    }
+
+    on(eventName, cb) {
+        if (this.callbacks[eventName] !== undefined) {
+            throw 'Duplicate event listener found. Please use \'off\' to clean up your listener'
+        }
+        this.callbacks[eventName] = cb;
+    }
+
+    off(eventName, cb) {
+        if (this.callbacks[eventName] === undefined) {
+            throw 'No event listener found. Please use \'on\' to configure up your listener'
+        }
+        delete this.callbacks[eventName];
+    }
+
+    _configureData() {
         let data = [];
         let itemIndex = 0;
 
-        cells.forEach(cell => {
+        this.cells.forEach(cell => {
             // Perform cell validation
             if (!cell.title) throw 'Missing \'title\' parameter in cell configuration';
             if (!cell.type) throw 'Missing \'type\' parameter in cell configuration';
@@ -37,7 +74,7 @@ class GrowingForm {
             const row = Ti.UI.createTableViewRow({ height: Ti.UI.SIZE });
 
             // Create and assign the content view
-            const contentView = this._createContentView(cell, itemIndex);
+            const contentView = this._createContentView(cell, itemIndex, itemIndex === this.expandedIndex);
             row.add(contentView);
 
             // Push the row to our data source
@@ -45,13 +82,7 @@ class GrowingForm {
             itemIndex++;
         });
 
-        // Create the container table-view with our data source
-        this.tableView = Ti.UI.createTableView({ 
-            separatorStyle: Ti.UI.TABLE_VIEW_SEPARATOR_STYLE_NONE,
-            selectionStyle: 0,
-            data: data 
-        });
-        this.formView.add(this.tableView);
+        this.tableView.data = data;
     }
 
     render(options = {}) {
@@ -69,7 +100,7 @@ class GrowingForm {
         view.add(this.formView);
     }
 
-    _createContentView(cell, itemIndex = -1) {
+    _createContentView(cell, itemIndex = -1, isExpanded) {
         const title = cell.title;
         const type = cell.type;
         const options = cell.options;
@@ -92,21 +123,23 @@ class GrowingForm {
 
         contentView.add(this._createTitleLabel(title));
 
-        switch (type) {
-            case GrowingFormFieldType.TEXT: {
-                contentView.add(this._createTextField(options));
-                break;
+        if (isExpanded) {
+            switch (type) {
+                case GrowingFormFieldType.TEXT: {
+                    contentView.add(this._createTextField(options));
+                    break;
+                }
+                default: {
+                    throw `Unhandled cell type = ${type.toUpperCase()}`;
+                } 
             }
-            default: {
-                throw `Unhandled cell type = ${type.toUpperCase()}`;
-            } 
-        }
 
-        contentView.add(this._createActionButton({
-            onClick: event => {
-                this._selectNextCell(itemIndex + 1, event);
-            }
-        }));
+            contentView.add(this._createActionButton(itemIndex, {
+                onClick: event => {
+                    this._selectNextCell(event);
+                }
+            }));
+        }
 
         // Change the separator height based opn the content height, shesshh!
         containerView.addEventListener('postlayout', event => {
@@ -143,14 +176,35 @@ class GrowingForm {
 
         containerView.add(contentView);
 
-        containerView.add(separatorLine);
+        // Do not add the separator line for the last item
+        if (itemIndex !== this.cells.length -1) {
+            containerView.add(separatorLine);
+        }
+
         containerView.add(bulletView);
 
         return containerView;
     }
 
-    _selectNextCell(itemIndex = -1, event = {}) {
-        Ti.API.warn(`TODO: Select cell with index = ${itemIndex}`);
+    _selectNextCell(event = {}) {
+        // If we are done, trigger the "submit" callback
+        if (this.expandedIndex === this.cells.length - 1) {
+            if (this.callbacks[GrowingFormEvent.SUBMIT]) {
+                // TODO: Return form data
+                const submitData = { 'TODO': 'RETURN_FORM_DATA' };
+                this.callbacks[GrowingFormEvent.SUBMIT](submitData);
+            }
+            alert('DONE!');
+            return;
+        // If not, yet, trigger the "step" callback
+        } else {
+            if (this.callbacks[GrowingFormEvent.STEP]) {
+                this.callbacks[GrowingFormEvent.STEP](this.expandedIndex + 1);
+            }
+        }
+
+        this.expandedIndex++;
+        this._configureData();
     }
 
     _createTextField(options = {}) {
@@ -179,7 +233,7 @@ class GrowingForm {
         return titleLabel;
     }
 
-    _createActionButton(options = {}) {
+    _createActionButton(itemIndex, options = {}) {
         const actionButton = Ti.UI.createButton({
             title: L('Continue'),
             width: 120,
@@ -190,6 +244,10 @@ class GrowingForm {
             top: 10,
             left: 0
         });
+
+        if (itemIndex === this.cells.length - 1) {
+            actionButton.title = L('Done');
+        }
 
         actionButton.addEventListener('click', options.onClick);
 
