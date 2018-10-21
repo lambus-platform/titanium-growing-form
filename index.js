@@ -73,6 +73,8 @@ class GrowingForm {
 		this._configureData();
 	}
 
+	/* PUBLIC API's */
+
 	on(eventName, cb) {
 		if (this.callbacks[eventName] !== undefined) {
 			throw new FormError('Duplicate event listener found. Please use \'off\' to clean up your listener');
@@ -86,6 +88,74 @@ class GrowingForm {
 		}
 		delete this.callbacks[eventName];
 	}
+
+	openStep(identifier) {
+		if (!identifier) {
+			throw new FormError('Missing \'identifier\'');
+		}
+
+		if (this.locked) {
+			throw new FormError('Trying to open a step in a locked state');
+		}
+
+		let step = 0;
+		const oldExpandedIndex = this.expandedIndex;
+
+		this.cells.forEach(cell => {
+			if (cell.identifier === identifier) {
+				this.expandedIndex = step;
+			}
+			step++;
+		});
+
+		// Only re-draw if necessary
+		if (oldExpandedIndex !== this.expandedIndex) {
+			this._configureData();
+		}
+	}
+
+	render(options = {}) {
+		const view = options.view;
+
+		// Validate container view
+		if (!view) {
+			throw new FormError('Missing required \'view\' parameter');
+		}
+
+		// Validate of the instance of this form has already been rendered in the container
+		view.children.forEach(child => {
+			if (child === this.formView) {
+				throw new FormError('Cannot render form in container view twice');
+			}
+		});
+
+		// Add the instance of this form to the container
+		view.add(this.formView);
+	}
+
+	lock() {
+		this.locked = true;
+	}
+
+	unlock() {
+		this.locked = false;
+	}
+
+	focus() {
+		if (!this.currentTextField) {
+			throw new FormError('Trying to focus a field that is not a text-field')
+		}
+		this.currentTextField.focus();
+	}
+
+	blur() {
+		if (!this.currentTextField) {
+			throw new FormError('Trying to blur a field that is not a text-field')
+		}
+		this.currentTextField.blur();
+	}
+
+	/* PRIVATE API's */
 
 	_configureData() {
 		let data = [];
@@ -116,33 +186,6 @@ class GrowingForm {
 		});
 
 		this.tableView.data = data;
-	}
-
-	render(options = {}) {
-		const view = options.view;
-
-		// Validate container view
-		if (!view) {
-			throw new FormError('Missing required \'view\' parameter');
-		}
-
-		// Validate of the instance of this form has already been rendered in the container
-		view.children.forEach(child => {
-			if (child === this.formView) {
-				throw new FormError('Cannot render form in container view twice');
-			}
-		});
-
-		// Add the instance of this form to the container
-		view.add(this.formView);
-	}
-
-	lock() {
-		this.locked = true;
-	}
-
-	unlock() {
-		this.locked = false;
 	}
 
 	_createContentView(cell, itemIndex = -1, isExpanded) {
@@ -303,7 +346,7 @@ class GrowingForm {
 
 			// Check if we have a validator
 			if (validate !== undefined) {
-				onChangeCallback(this._validateFromType(validate, value));
+				onChangeCallback(this._validateFromType(cell, value));
 			}
 		});
 
@@ -323,7 +366,7 @@ class GrowingForm {
 
 	_createActionButton(cell, itemIndex, options = {}) {
 		// If no validation rules are set, we assume the cell should not be validated
-		const isInitiallyValid = this._validateFromType(cell.validate, this.formData[cell.identifier] || '');
+		const isInitiallyValid = this._validateFromType(cell, this.formData[cell.identifier] || '');
 
 		const actionButton = Ti.UI.createButton({
 			title: this.options.stepButtonTitle || L('Continue', 'Continue'),
@@ -350,7 +393,9 @@ class GrowingForm {
 		return actionButton;
 	}
 
-	_validateFromType(validator, value) {
+	_validateFromType(cell, value) {
+		const validator = cell.validate;
+
 		// If we have a validation function, invoke it
 		if (this._isFunction(validator)) {
 			return validator(value);
@@ -360,6 +405,8 @@ class GrowingForm {
 		if (!typeof validator === 'string') {
 			throw new FormValidationError(`Invalid validator type = ${typeof validator}`);
 		}
+
+		// TODO: Make this more generic to handle fields received via "cell.type"
 
 		switch (validator) {
 			case GrowingFormValidationRule.NOT_EMPTY: {
