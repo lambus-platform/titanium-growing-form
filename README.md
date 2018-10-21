@@ -4,8 +4,6 @@
 
 A form that expands / collapses based on the current input field. Also known as "growing form" or "stepper form".
 
-⚠️ This project is currently work in progress and should not be used in production so far.
-
 ## Requirements
 
 - [x] Titanium SDK (`npm i titanium`)
