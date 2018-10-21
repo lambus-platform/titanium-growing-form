@@ -21,6 +21,7 @@ const config = {
 		title: 'Your Username',
 		identifier: 'username',
 		type: GrowingFormFieldType.TEXT,
+		validate: GrowingFormValidationRule.NOT_EMPTY,
 		options: {
 			hintText: 'Enter username ...'
 		}
@@ -28,6 +29,7 @@ const config = {
 		title: 'Your Mail address',
 		identifier: 'email',
 		type: GrowingFormFieldType.TEXT,
+		validate: GrowingFormValidationRule.EMAIL,
 		options: {
 			keyboardType: Ti.UI.KEYBOARD_TYPE_EMAIL,
 			hintText: 'Enter mail address ...'
@@ -36,6 +38,11 @@ const config = {
 		title: 'Your Password',
 		identifier: 'password',
 		type: GrowingFormFieldType.TEXT,
+		validate: value => {
+			// CREDITS: https://www.thepolyglotdeveloper.com/2015/05/use-regex-to-test-password-strength-in-javascript/
+			const strongRegex = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})");
+			return strongRegex.test(value);
+		},
 		options: {
 			passwordMask: true,
 			hintText: 'Enter password ...'

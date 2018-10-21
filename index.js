@@ -13,6 +13,13 @@ const GrowingFormEvent = {
 	SUBMIT: 'submit'
 };
 
+const GrowingFormValidationRule = {
+	ALLOW_EMPTY: 'allow_empty',
+	NOT_EMPTY: 'empty',
+	EMAIL: 'email',
+	NUMERIC: 'numeric'
+}
+
 class FormError extends Error {}
 
 class GrowingForm {
@@ -139,8 +146,6 @@ class GrowingForm {
 	_createContentView(cell, itemIndex = -1, isExpanded) {
 		const title = cell.title;
 		const type = cell.type;
-		const identifier = cell.identifier;
-		const options = cell.options;
 
 		// The container view holds both the content-view and bullets
 		const containerView = Ti.UI.createView({
@@ -164,7 +169,13 @@ class GrowingForm {
 		if (isExpanded) {
 			switch (type) {
 				case GrowingFormFieldType.TEXT: {
-					contentView.add(this._createTextField(identifier, options));
+					contentView.add(this._createTextField({
+						cell: cell,
+						onChange: isValid => {
+							actionButton.opacity = isValid ? 1.0 : 0.3;
+							actionButton.enabled = isValid;
+						}
+					}));
 					break;
 				}
 				default: {
@@ -172,11 +183,12 @@ class GrowingForm {
 				}
 			}
 
-			contentView.add(this._createActionButton(itemIndex, {
+			const actionButton = this._createActionButton(cell, itemIndex, {
 				onClick: () => {
 					this._selectNextCell();
 				}
-			}));
+			});
+			contentView.add(actionButton);
 		}
 
 		// Change the separator height based opn the content height, shesshh!
@@ -259,7 +271,13 @@ class GrowingForm {
 		this._configureData();
 	}
 
-	_createTextField(identifier, options = {}) {
+	_createTextField(args) {
+		const cell = args.cell;
+		const onChangeCallback = args.onChange;
+		const identifier = cell.identifier;
+		const validate = cell.validate;
+		const options = cell.options || {};
+
 		const textField = Ti.UI.createTextField({
 			top: 8,
 			left: 0,
@@ -278,7 +296,19 @@ class GrowingForm {
 		textField.applyProperties(options);
 
 		textField.addEventListener('change', event => {
-			this.formData[identifier] = event.value;
+			const value = event.value;
+			this.formData[identifier] = value;
+
+			// Check if we have a validator
+			if (validate !== undefined) {
+				// Check if the validator is a function
+				if (this._isFunction(validate)) {
+					onChangeCallback(validate(value));
+				// If not, check if the validator is a constant (e.g. NOT_EMPTY)
+				} else if (typeof validate === 'string') {
+					onChangeCallback(this._validateFromType(validate, value));
+				}
+			}
 		});
 
 		return textField;
@@ -295,9 +325,17 @@ class GrowingForm {
 		return titleLabel;
 	}
 
-	_createActionButton(itemIndex, options = {}) {
+	_createActionButton(cell, itemIndex, options = {}) {
+		// If no validation rules are set, we assume the cell should not be validated
+		let isInitiallyValid = false;
+		if (!cell.validate || (cell.validate && typeof cell.validate === 'string' && cell.validate === GrowingFormValidationRule.ALLOW_EMPTY)) {
+			isInitiallyValid = true;
+		}
+
 		const actionButton = Ti.UI.createButton({
 			title: this.options.stepButtonTitle || L('Continue', 'Continue'),
+			enabled: isInitiallyValid,
+			opacity: isInitiallyValid ? 1.0 : 0.3,
 			width: 120,
 			height: 40,
 			borderRadius: this.options.stepButtonBorderRadius,
@@ -318,6 +356,32 @@ class GrowingForm {
 
 		return actionButton;
 	}
+
+	_validateFromType(type, value) {
+		switch (type) {
+			case GrowingFormValidationRule.NOT_EMPTY: {
+				return value.toString().trim().length > 0;
+			}
+			case GrowingFormValidationRule.EMAIL: {
+				return this._isValidEmail(value);
+			}
+			case GrowingFormValidationRule.NUMERIC: {
+				return !isNaN(parseFloat(value)) && !isNaN(value - 0) 
+			}
+			default: {
+				throw new FormError(`Unhandled form validation type = ${type}`);
+			}
+		}
+	}
+
+	_isValidEmail(email) {
+		var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+		return re.test(String(email).toLowerCase());
+	}
+
+	_isFunction(functionToCheck) {
+		return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
+	}
 }
 
 const GrowingFormFieldType = {
@@ -326,4 +390,4 @@ const GrowingFormFieldType = {
 	DROPDOWN: 'dropdown'
 };
 
-export { GrowingForm, GrowingFormFieldType };
+export { GrowingForm, GrowingFormFieldType, GrowingFormValidationRule };
