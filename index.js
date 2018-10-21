@@ -22,6 +22,8 @@ const GrowingFormValidationRule = {
 
 class FormError extends Error {}
 
+class FormValidationError extends FormError {}
+
 class GrowingForm {
 
 	constructor(options = {}) {
@@ -301,13 +303,7 @@ class GrowingForm {
 
 			// Check if we have a validator
 			if (validate !== undefined) {
-				// Check if the validator is a function
-				if (this._isFunction(validate)) {
-					onChangeCallback(validate(value));
-				// If not, check if the validator is a constant (e.g. NOT_EMPTY)
-				} else if (typeof validate === 'string') {
-					onChangeCallback(this._validateFromType(validate, value));
-				}
+				onChangeCallback(this._validateFromType(validate, value));
 			}
 		});
 
@@ -327,10 +323,7 @@ class GrowingForm {
 
 	_createActionButton(cell, itemIndex, options = {}) {
 		// If no validation rules are set, we assume the cell should not be validated
-		let isInitiallyValid = false;
-		if (!cell.validate || (cell.validate && typeof cell.validate === 'string' && cell.validate === GrowingFormValidationRule.ALLOW_EMPTY)) {
-			isInitiallyValid = true;
-		}
+		let isInitiallyValid = this._validateFromType(cell.validate, this.formData[cell.identifier] || '');
 
 		const actionButton = Ti.UI.createButton({
 			title: this.options.stepButtonTitle || L('Continue', 'Continue'),
@@ -357,8 +350,18 @@ class GrowingForm {
 		return actionButton;
 	}
 
-	_validateFromType(type, value) {
-		switch (type) {
+	_validateFromType(validator, value) {
+		// If we have a validation function, invoke it
+		if (this._isFunction(validator)) {
+			return validator(value);
+		}
+
+		// If we have a constant, switch-case it
+		if (!typeof validator === 'string') {
+			throw new FormValidationError(`Invalid validator type = ${typeof validator}`);
+		}
+
+		switch (validator) {
 			case GrowingFormValidationRule.NOT_EMPTY: {
 				return value.toString().trim().length > 0;
 			}
@@ -369,7 +372,7 @@ class GrowingForm {
 				return !isNaN(parseFloat(value)) && !isNaN(value - 0);
 			}
 			default: {
-				throw new FormError(`Unhandled form validation type = ${type}`);
+				throw new FormValidationError(`Unhandled form validator = ${validator}`);
 			}
 		}
 	}
