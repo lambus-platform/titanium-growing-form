@@ -11,6 +11,11 @@ A form that expands / collapses based on the current input field. Also known as 
 - [x] Titanium SDK (`npm i titanium`)
 - [x] ES6+ enabled (`<transpile>true</transpile>`)
 
+## Installation
+
+1. Via npm: `npm i ti.growingform`
+2. Manually: Copy to `app/lib/` (Alloy) or `Resources/` (classic)
+
 ## Example
 
 ```js
