@@ -19,7 +19,7 @@ A form that expands / collapses based on the current input field. Also known as 
 ## Example
 
 ```js
-import { GrowingForm, GrowingFormFieldType } from 'ti.growingform';
+import { GrowingForm, GrowingFormValidationRule, GrowingFormFieldType } from 'ti.growingform';
 
 const config = {
 	cells: [{
