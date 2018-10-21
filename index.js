@@ -18,7 +18,7 @@ const GrowingFormValidationRule = {
 	NOT_EMPTY: 'empty',
 	EMAIL: 'email',
 	NUMERIC: 'numeric'
-}
+};
 
 class FormError extends Error {}
 
@@ -366,7 +366,7 @@ class GrowingForm {
 				return this._isValidEmail(value);
 			}
 			case GrowingFormValidationRule.NUMERIC: {
-				return !isNaN(parseFloat(value)) && !isNaN(value - 0) 
+				return !isNaN(parseFloat(value)) && !isNaN(value - 0);
 			}
 			default: {
 				throw new FormError(`Unhandled form validation type = ${type}`);
@@ -375,7 +375,7 @@ class GrowingForm {
 	}
 
 	_isValidEmail(email) {
-		var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+		const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 		return re.test(String(email).toLowerCase());
 	}
 
