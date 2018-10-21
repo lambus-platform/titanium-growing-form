@@ -97,13 +97,14 @@ All methods and properties are accessed from the `GrowingForm` instance
 
 ### Methods
 
-|   Name   | Arguments  |   Note   |
-|----------|------------|----------|
-| lock     |            | Lock the form |
-| unlock   |            | Unlock the form |
-| openStep | identifier | Move back to a step, crawled by it's identifier |
-| focus    |            | Focus the current field (only if the field is a text-field) |
-| blur     |            | Blur the current field (only if the field is a text-field) |
+|   Name   | Arguments  |   Description  |
+|----------|------------|----------------|
+| lock     |            | Locks the form |
+| unlock   |            | Unlocks the form |
+| openStep | identifier | Moves back to a step, crawled by it's identifier |
+| focus    |            | Focuses the current field (only if the field is a text-field) |
+| blur     |            | Blurs the current field (only if the field is a text-field) |
+| submit   |            | Submits the form programmatically |
 
 ## License
 

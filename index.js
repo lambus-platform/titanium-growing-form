@@ -155,6 +155,21 @@ class GrowingForm {
 		this.currentTextField.blur();
 	}
 
+	submit() {
+		if (this.expandedIndex !== this.cells.length -1) {
+			throw new FormError('Trying to submit as form that did not reach it\'s end so far');
+		}
+	
+		// If the last element was a text-field, blur it!
+		if (this.cells[this.expandedIndex].type === GrowingFormFieldType.TEXT && this.currentTextField) {
+			this.currentTextField.blur();
+		}
+		if (this.callbacks[GrowingFormEvent.SUBMIT]) {
+			this.callbacks[GrowingFormEvent.SUBMIT](this.formData);
+		}
+		this.locked = true;
+	}
+
 	/* PRIVATE API's */
 
 	_configureData() {
@@ -298,14 +313,7 @@ class GrowingForm {
 	_selectNextCell() {
 		// If we are done, trigger the "submit" callback
 		if (this.expandedIndex === this.cells.length - 1) {
-			// If the last element was a text-field, blur it!
-			if (this.cells[this.expandedIndex].type === GrowingFormFieldType.TEXT && this.currentTextField) {
-				this.currentTextField.blur();
-			}
-			if (this.callbacks[GrowingFormEvent.SUBMIT]) {
-				this.callbacks[GrowingFormEvent.SUBMIT](this.formData);
-			}
-			this.locked = true;
+			this.submit();
 			return;
 			// If not, yet, trigger the "step" callback
 		} else if (this.callbacks[GrowingFormEvent.STEP]) {
