@@ -52,6 +52,9 @@ const config = {
 		}
 	}],
 	options: {
+    // Style the underlaying table-view via it's header-view
+    tableTopMargin: 50,
+
 		// Bullets
 		bulletInactiveBackgroundColor: '#666',
 		bulletInactiveTextColor: '#fff',
@@ -71,8 +74,7 @@ const config = {
 		submitButtonBorderRadius: 20
 	},
 	overrides: {
-		// backgroundColor: 'green',
-		top: 50
+		// backgroundColor: 'green'
 	} 
 };
 

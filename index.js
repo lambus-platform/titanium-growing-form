@@ -65,7 +65,8 @@ class GrowingForm {
 		this.tableView = Ti.UI.createTableView({
 			backgroundColor: 'transparent',
 			separatorStyle: Ti.UI.TABLE_VIEW_SEPARATOR_STYLE_NONE,
-			selectionStyle: 0
+			selectionStyle: 0,
+			headerView: Ti.UI.createView({ height: this.options.tableTopMargin || 0 })
 		});
 		this.formView.add(this.tableView);
 
