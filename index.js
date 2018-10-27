@@ -17,7 +17,8 @@ const GrowingFormValidationRule = {
 	ALLOW_EMPTY: 'allow_empty',
 	NOT_EMPTY: 'empty',
 	EMAIL: 'email',
-	NUMERIC: 'numeric'
+	NUMERIC: 'numeric',
+	LIVE: 'live'
 };
 
 class FormError extends Error {}
@@ -208,6 +209,9 @@ class GrowingForm {
 		const title = cell.title;
 		const type = cell.type;
 
+		let textField;
+		let actionButton;
+
 		// The container view holds both the content-view and bullets
 		const containerView = Ti.UI.createView({
 			height: Ti.UI.SIZE,
@@ -230,13 +234,26 @@ class GrowingForm {
 		if (isExpanded) {
 			switch (type) {
 				case GrowingFormFieldType.TEXT: {
-					contentView.add(this._createTextField({
+					textField = this._createTextField({
 						cell: cell,
 						onChange: isValid => {
+							this.formData[cell.identifier] = textField.value;
+
+							// If we use live-validation, do not update our UI so far
+							if (cell.validate === GrowingFormValidationRule.LIVE) {
+								const throttle = cell.throttle;
+								if (!throttle || typeof throttle !== 'function') {
+									throw new FormError('using live validation without padding \'throttle\' method');
+								}
+								throttle(textField, actionButton);
+								return;
+							}
+
 							actionButton.opacity = isValid ? 1.0 : 0.3;
 							actionButton.enabled = isValid;
 						}
-					}));
+					});
+					contentView.add(textField);
 					break;
 				}
 				default: {
@@ -244,7 +261,7 @@ class GrowingForm {
 				}
 			}
 
-			const actionButton = this._createActionButton(cell, itemIndex, {
+			actionButton = this._createActionButton(cell, itemIndex, {
 				onClick: () => {
 					this._selectNextCell();
 				}
@@ -351,11 +368,11 @@ class GrowingForm {
 
 		textField.addEventListener('change', event => {
 			const value = event.value;
-			this.formData[identifier] = value;
 
 			// Check if we have a validator
 			if (validate !== undefined) {
-				onChangeCallback(this._validateFromType(cell, value));
+				const isValid = this._validateFromType(cell, value);
+				onChangeCallback(isValid);
 			}
 		});
 
@@ -426,6 +443,9 @@ class GrowingForm {
 			}
 			case GrowingFormValidationRule.NUMERIC: {
 				return !isNaN(parseFloat(value)) && !isNaN(value - 0);
+			}
+			case GrowingFormValidationRule.LIVE: {
+				return this.formData[cell.identifier] && this.formData[cell.identifier].length > 0;
 			}
 			default: {
 				throw new FormValidationError(`Unhandled form validator = ${validator}`);

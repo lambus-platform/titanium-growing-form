@@ -24,8 +24,9 @@ const config = {
 		title: 'Your Username',
 		identifier: 'username',
 		type: GrowingFormFieldType.TEXT,
-		validate: GrowingFormValidationRule.NOT_EMPTY,
-		options: {
+    validate: GrowingFormValidationRule.LIVE,
+    throttle: handleUsernameThrottle,
+    options: {
 			hintText: 'Enter username ...'
 		}
 	}, {
@@ -77,6 +78,13 @@ const config = {
 		// backgroundColor: 'green'
 	} 
 };
+
+function handleUsernameThrottle(textField, submitButton) {
+    // Do a HTTP request to validate the text-field value
+    // and enable / disable the submit button as below
+    submitButton.enabled = true;
+    submitButton.opacity = 1.0
+}
 
 const growingForm = new GrowingForm({ configuration: config });
 
