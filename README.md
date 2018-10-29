@@ -92,8 +92,8 @@ growingForm.on('submit', data => {
 	Ti.API.info(`Finished form! Data: ${JSON.stringify(data)}`)
 });
 
-growingForm.on('step', index => {
-	Ti.API.info(`Stepped to ${index}`)
+growingForm.on('step', (textField, index, isValid) => {
+  Ti.API.info(`Stepped to ${index}, valid = ${isValid}`);
 });
 
 growingForm.render({ view: $.index });

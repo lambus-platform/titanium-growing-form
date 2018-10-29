@@ -1,3 +1,5 @@
+/* global L */
+
 const GrowingFormLayoutDimension = {
 	LEFT_MARGIN: 0,
 	RIGHT_MARGIN: 0,
@@ -145,23 +147,23 @@ class GrowingForm {
 
 	focus() {
 		if (!this.currentTextField) {
-			throw new FormError('Trying to focus a field that is not a text-field')
+			throw new FormError('Trying to focus a field that is not a text-field');
 		}
 		this.currentTextField.focus();
 	}
 
 	blur() {
 		if (!this.currentTextField) {
-			throw new FormError('Trying to blur a field that is not a text-field')
+			throw new FormError('Trying to blur a field that is not a text-field');
 		}
 		this.currentTextField.blur();
 	}
 
 	submit() {
-		if (this.expandedIndex !== this.cells.length -1) {
+		if (this.expandedIndex !== this.cells.length - 1) {
 			throw new FormError('Trying to submit as form that did not reach it\'s end so far');
 		}
-	
+
 		// If the last element was a text-field, blur it!
 		if (this.cells[this.expandedIndex].type === GrowingFormFieldType.TEXT && this.currentTextField) {
 			this.currentTextField.blur();
@@ -285,6 +287,11 @@ class GrowingForm {
 
 				this.expandedIndex = itemIndex;
 				this._configureData();
+
+				if (this.callbacks[GrowingFormEvent.STEP]) {
+					const cell = this.cells[this.expandedIndex];
+					this.callbacks[GrowingFormEvent.STEP](this.currentTextField, this.expandedIndex, this._validateFromType(cell, this.formData[cell.identifier]));
+				}
 			});
 		}
 
@@ -335,7 +342,10 @@ class GrowingForm {
 			return;
 			// If not, yet, trigger the "step" callback
 		} else if (this.callbacks[GrowingFormEvent.STEP]) {
-			this.callbacks[GrowingFormEvent.STEP](this.expandedIndex + 1);
+			const cell = this.cells[this.expandedIndex + 1];
+			const value = this.formData[cell.identifier];
+
+			this.callbacks[GrowingFormEvent.STEP](this.currentTextField, this.expandedIndex + 1, this._validateFromType(cell, value));
 		}
 
 		this.expandedIndex++;
