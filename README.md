@@ -24,9 +24,9 @@ const config = {
 		title: 'Your Username',
 		identifier: 'username',
 		type: GrowingFormFieldType.TEXT,
-    validate: GrowingFormValidationRule.LIVE,
-    throttle: handleUsernameThrottle,
-    options: {
+		validate: GrowingFormValidationRule.LIVE,
+		throttle: handleUsernameThrottle,
+		options: {
 			hintText: 'Enter username ...'
 		}
 	}, {
@@ -53,8 +53,8 @@ const config = {
 		}
 	}],
 	options: {
-    // Style the underlaying table-view via it's header-view
-    tableTopMargin: 50,
+    		// Style the underlaying table-view via it's header-view
+    		tableTopMargin: 50,
 
 		// Bullets
 		bulletInactiveBackgroundColor: '#666',
@@ -80,10 +80,10 @@ const config = {
 };
 
 function handleUsernameThrottle(textField, submitButton) {
-    // Do a HTTP request to validate the text-field value
-    // and enable / disable the submit button as below
-    submitButton.enabled = true;
-    submitButton.opacity = 1.0
+	// Do a HTTP request to validate the text-field value
+ 	// and enable / disable the submit button as below
+	submitButton.enabled = true;
+	submitButton.opacity = 1.0
 }
 
 const growingForm = new GrowingForm({ configuration: config });
