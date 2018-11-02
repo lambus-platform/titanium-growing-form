@@ -230,7 +230,7 @@ class GrowingForm {
 			layout: 'vertical',
 		});
 
-		contentView.add(this._createTitleLabel(title));
+		contentView.add(this._createTitleLabel(cell, itemIndex));
 
 		// Only add content if expanded
 		if (isExpanded) {
@@ -389,15 +389,40 @@ class GrowingForm {
 		return textField;
 	}
 
-	_createTitleLabel(title = L('Select')) {
+	_createTitleLabel(cell, itemIndex) {
+		const titleLabelContainerView = Ti.UI.createView({ height: Ti.UI.SIZE, left: 0, top: 6, right: 0, layout: 'vertical' });
+		const isValid = this._validateFromType(cell, this.formData[cell.identifier] || '') && this.expandedIndex !== itemIndex;
+
 		const titleLabel = Ti.UI.createLabel({
-			top: 6,
+			top: 0,
 			left: 0,
 			color: '#000',
-			text: title
+			text: cell.title
 		});
 
-		return titleLabel;
+		titleLabelContainerView.add(titleLabel)
+
+		if (isValid) {
+			let value = this.formData[cell.identifier];
+			const usePasswordMask = cell.options && cell.options.passwordMask === true;
+
+			if (usePasswordMask) {
+				value = new Array(value.length).join('•');
+			}
+
+			titleLabelContainerView.applyProperties({
+				top: 0
+			});
+			titleLabelContainerView.add(Ti.UI.createLabel({ 
+				top: 0, 
+				left: 0,
+				color: Alloy.CFG.styles.tintColor,
+				font: { fontSize: 12 }, 
+				text: value
+			}));
+		}
+
+		return titleLabelContainerView;
 	}
 
 	_createActionButton(cell, itemIndex, options = {}) {
