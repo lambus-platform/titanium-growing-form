@@ -342,7 +342,7 @@ class GrowingForm {
 			return;
 			// If not, yet, trigger the "step" callback
 		} else if (this.callbacks[GrowingFormEvent.STEP]) {
-			const cell = this.cells[this.expandedIndex + 1];
+			const cell = this.cells[this.expandedIndex];
 			const value = this.formData[cell.identifier];
 
 			this.callbacks[GrowingFormEvent.STEP](this.currentTextField, this.expandedIndex + 1, this._validateFromType(cell, value));
