@@ -23,9 +23,9 @@ const GrowingFormValidationRule = {
 	LIVE: 'live'
 };
 
-class FormError extends Error {}
+class FormError extends Error { }
 
-class FormValidationError extends FormError {}
+class FormValidationError extends FormError { }
 
 class GrowingForm {
 
@@ -165,7 +165,11 @@ class GrowingForm {
 		}
 
 		// If the last element was a text-field, blur it!
-		if (this.cells[this.expandedIndex].type === GrowingFormFieldType.TEXT && this.currentTextField) {
+		if ((
+			this.cells[this.expandedIndex].type === GrowingFormFieldType.TEXT
+			|| this.cells[this.expandedIndex].type === GrowingFormFieldType.EMAIL
+			|| this.cells[this.expandedIndex].type === GrowingFormFieldType.NUMBER
+		) && this.currentTextField) {
 			this.currentTextField.blur();
 		}
 		if (this.callbacks[GrowingFormEvent.SUBMIT]) {
@@ -235,7 +239,9 @@ class GrowingForm {
 		// Only add content if expanded
 		if (isExpanded) {
 			switch (type) {
-				case GrowingFormFieldType.TEXT: {
+				case GrowingFormFieldType.TEXT:
+				case GrowingFormFieldType.EMAIL:
+				case GrowingFormFieldType.NUMBER: {
 					textField = this._createTextField({
 						cell: cell,
 						onChange: isValid => {
@@ -372,6 +378,19 @@ class GrowingForm {
 			value: this.formData[identifier] || ''
 		});
 
+		switch (cell.type) {
+			case GrowingFormFieldType.NUMBER:
+				textField.keyboardType = Ti.UI.KEYBOARD_TYPE_NUMBER_PAD;
+				break;
+			case GrowingFormFieldType.EMAIL:
+				textField.autocapitalization = Ti.UI.TEXT_AUTOCAPITALIZATION_NONE
+				textField.keyboardType = Ti.UI.KEYBOARD_TYPE_EMAIL;
+				break;
+			default:
+				textField.keyboardType = Ti.UI.KEYBOARD_TYPE_DEFAULT;
+				break;
+		}
+
 		// Reference a reference in our scope to blur it, if it is the last form input
 		this.currentTextField = textField;
 		textField.applyProperties(options);
@@ -413,11 +432,11 @@ class GrowingForm {
 			titleLabelContainerView.applyProperties({
 				top: 0
 			});
-			titleLabelContainerView.add(Ti.UI.createLabel({ 
-				top: 0, 
+			titleLabelContainerView.add(Ti.UI.createLabel({
+				top: 0,
 				left: 0,
-				color: Alloy.CFG.styles.tintColor,
-				font: { fontSize: 12 }, 
+				color: this.options.titleLabelColor || Alloy.CFG.styles.tintColor,
+				font: { fontSize: this.options.titleLabelFontSize || 12 },
 				text: value
 			}));
 		}
@@ -433,7 +452,7 @@ class GrowingForm {
 			title: this.options.stepButtonTitle || L('Continue', 'Continue'),
 			enabled: isInitiallyValid,
 			opacity: isInitiallyValid ? 1.0 : 0.3,
-			width: 120,
+			width: options.buttonWidth || 120,
 			height: 40,
 			borderRadius: this.options.stepButtonBorderRadius,
 			backgroundColor: this.options.stepButtonBackgroundColor,
@@ -469,21 +488,26 @@ class GrowingForm {
 
 		// TODO: Make this more generic to handle fields received via "cell.type"
 
-		switch (validator) {
-			case GrowingFormValidationRule.NOT_EMPTY: {
-				return value.toString().trim().length > 0;
-			}
-			case GrowingFormValidationRule.EMAIL: {
-				return this._isValidEmail(value);
-			}
-			case GrowingFormValidationRule.NUMERIC: {
-				return !isNaN(parseFloat(value)) && !isNaN(value - 0);
-			}
-			case GrowingFormValidationRule.LIVE: {
-				return this.formData[cell.identifier] && this.formData[cell.identifier].length > 0;
-			}
-			default: {
-				throw new FormValidationError(`Unhandled form validator = ${validator}`);
+		if (validator) {
+			switch (validator) {
+				case GrowingFormValidationRule.ALLOW_EMPTY: {
+					return true;
+				}
+				case GrowingFormValidationRule.NOT_EMPTY: {
+					return value.toString().trim().length > 0;
+				}
+				case GrowingFormValidationRule.EMAIL: {
+					return this._isValidEmail(value);
+				}
+				case GrowingFormValidationRule.NUMERIC: {
+					return !isNaN(parseFloat(value)) && !isNaN(value - 0);
+				}
+				case GrowingFormValidationRule.LIVE: {
+					return this.formData[cell.identifier] && this.formData[cell.identifier].length > 0;
+				}
+				default: {
+					throw new FormValidationError(`Unhandled form validator = ${validator}`);
+				}
 			}
 		}
 	}
@@ -500,6 +524,8 @@ class GrowingForm {
 
 const GrowingFormFieldType = {
 	TEXT: 'text',
+	EMAIL: 'email',
+	NUMBER: 'number',
 	CHECKBOX: 'checkbox',
 	DROPDOWN: 'dropdown'
 };
