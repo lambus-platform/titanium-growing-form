@@ -448,10 +448,8 @@ class GrowingForm {
 		// If no validation rules are set, we assume the cell should not be validated
 		const isInitiallyValid = this._validateFromType(cell, this.formData[cell.identifier] || '');
 
-		const buttonTitle = this.options.stepButtonTitle || L('Continue', 'Continue');
-
 		const actionButton = Ti.UI.createButton({
-			title: ' ' + buttonTitle + ' ',
+			title: this.options.stepButtonTitle || L('Continue', 'Continue'),
 			enabled: isInitiallyValid,
 			opacity: isInitiallyValid ? 1.0 : 0.3,
 			width: options.buttonWidth || 120,
