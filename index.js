@@ -435,8 +435,8 @@ class GrowingForm {
 			titleLabelContainerView.add(Ti.UI.createLabel({
 				top: 0,
 				left: 0,
-				color: Alloy.CFG.color.tint,
-				font: { fontSize: 14 },
+				color: this.options.titleLabelColor || Alloy.CFG.styles.tintColor,
+				font: { fontSize: this.options.titleLabelFontSize || 12 },
 				text: value
 			}));
 		}
