@@ -167,6 +167,7 @@ class GrowingForm {
 		// If the last element was a text-field, blur it!
 		if ((
 			this.cells[this.expandedIndex].type === GrowingFormFieldType.TEXT
+			|| this.cells[this.expandedIndex].type === GrowingFormFieldType.TEXTAREA
 			|| this.cells[this.expandedIndex].type === GrowingFormFieldType.EMAIL
 			|| this.cells[this.expandedIndex].type === GrowingFormFieldType.NUMBER
 		) && this.currentTextField) {
@@ -218,6 +219,9 @@ class GrowingForm {
 		let textField;
 		let actionButton;
 
+		const actionButtonOpacityValid = 1.0;
+		const actionButtonOpacityInvalid = 0.3;
+
 		// The container view holds both the content-view and bullets
 		const containerView = Ti.UI.createView({
 			height: Ti.UI.SIZE,
@@ -236,30 +240,39 @@ class GrowingForm {
 
 		contentView.add(this._createTitleLabel(cell, itemIndex));
 
+		const validation = isValid => {
+			this.formData[cell.identifier] = textField.value;
+
+			// If we use live-validation, do not update our UI so far
+			if (cell.validate === GrowingFormValidationRule.LIVE) {
+				const throttle = cell.throttle;
+				if (!throttle || typeof throttle !== 'function') {
+					throw new FormError('using live validation without padding \'throttle\' method');
+				}
+				throttle(textField, actionButton);
+				return;
+			}
+
+			actionButton.opacity = isValid ? actionButtonOpacityValid : actionButtonOpacityInvalid;
+			actionButton.enabled = isValid;
+		}
+
 		// Only add content if expanded
 		if (isExpanded) {
 			switch (type) {
+				case GrowingFormFieldType.TEXTAREA:
+					textField = this._createTextArea({
+						cell: cell,
+						onChange: validation
+					});
+					contentView.add(textField);
+					break;
 				case GrowingFormFieldType.TEXT:
 				case GrowingFormFieldType.EMAIL:
 				case GrowingFormFieldType.NUMBER: {
 					textField = this._createTextField({
 						cell: cell,
-						onChange: isValid => {
-							this.formData[cell.identifier] = textField.value;
-
-							// If we use live-validation, do not update our UI so far
-							if (cell.validate === GrowingFormValidationRule.LIVE) {
-								const throttle = cell.throttle;
-								if (!throttle || typeof throttle !== 'function') {
-									throw new FormError('using live validation without padding \'throttle\' method');
-								}
-								throttle(textField, actionButton);
-								return;
-							}
-
-							actionButton.opacity = isValid ? 1.0 : 0.3;
-							actionButton.enabled = isValid;
-						}
+						onChange: validation
 					});
 					contentView.add(textField);
 					break;
@@ -356,6 +369,43 @@ class GrowingForm {
 
 		this.expandedIndex++;
 		this._configureData();
+	}
+
+	_createTextArea(args) {
+		const cell = args.cell;
+		const onChangeCallback = args.onChange;
+		const identifier = cell.identifier;
+		const validate = cell.validate;
+		const options = cell.options || {};
+
+		const textArea = Ti.UI.createTextArea({
+			top: 8,
+			left: 0,
+			width: 280,
+			height: 120,
+			color: '#000',
+			hintTextColor: '#bebebe',
+			padding: { left: 5, right: 5 },
+			borderRadius: 4,
+			backgroundColor: '#eee',
+			value: this.formData[identifier] || ''
+		});
+
+		// Reference a reference in our scope to blur it, if it is the last form input
+		this.currentTextField = textArea;
+		textArea.applyProperties(options);
+
+		textArea.addEventListener('change', event => {
+			const value = event.value;
+
+			// Check if we have a validator
+			if (validate !== undefined) {
+				const isValid = this._validateFromType(cell, value);
+				onChangeCallback(isValid);
+			}
+		});
+
+		return textArea;
 	}
 
 	_createTextField(args) {
@@ -524,6 +574,7 @@ class GrowingForm {
 
 const GrowingFormFieldType = {
 	TEXT: 'text',
+	TEXTAREA: 'textarea',
 	EMAIL: 'email',
 	NUMBER: 'number',
 	CHECKBOX: 'checkbox',
