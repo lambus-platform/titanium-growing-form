@@ -360,9 +360,7 @@ class GrowingForm {
 
 			if (this.cells[this.expandedIndex].type === GrowingFormFieldType.TEXT
 				|| this.cells[this.expandedIndex].type === GrowingFormFieldType.TEXTAREA) {
-				console.log('drin');
 				if (this.options.focusNexField === true) {
-					console.log('dran');
 					setTimeout(() => {
 						this.focus();
 					}, 200);
@@ -447,6 +445,21 @@ class GrowingForm {
 				const isValid = this._validateFromType(cell, value);
 				onChangeCallback(isValid);
 			}
+		});
+
+		textField.addEventListener('return', event => {
+			const value = event.value;
+
+			// Check if we have a validator
+			if (validate !== undefined) {
+				const isValid = this._validateFromType(cell, value);
+				console.log('isValid', isValid);
+				if (isValid === true) {
+					this._selectNextCell();
+				}
+				return;
+			}
+			this._selectNextCell();
 		});
 
 		return textField;
