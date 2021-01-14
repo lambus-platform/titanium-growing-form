@@ -51,8 +51,22 @@ const config = {
 			passwordMask: true,
 			hintText: 'Enter password ...'
 		}
-	}],
+	},{
+		title: 'Comment',
+		identifier: 'comment',
+		type: GrowingFormFieldType.TEXTAREA,
+		validate: GrowingFormValidationRule.ALLOW_EMPTY,
+		options: {
+		    suppressReturn: false,
+		    font: {
+			fontSize: 14
+		    }
+		}
+    }],
 	options: {
+		// Automatically focus next field
+        	focusNexField: true,
+	
     		// Style the underlaying table-view via it's header-view
     		tableTopMargin: 50,
 
