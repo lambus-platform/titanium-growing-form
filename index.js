@@ -165,12 +165,8 @@ class GrowingForm {
 		}
 
 		// If the last element was a text-field, blur it!
-		if ((
-			this.cells[this.expandedIndex].type === GrowingFormFieldType.TEXT
-			|| this.cells[this.expandedIndex].type === GrowingFormFieldType.TEXTAREA
-			|| this.cells[this.expandedIndex].type === GrowingFormFieldType.EMAIL
-			|| this.cells[this.expandedIndex].type === GrowingFormFieldType.NUMBER
-		) && this.currentTextField) {
+		if ((this.cells[this.expandedIndex].type === GrowingFormFieldType.TEXT
+			|| this.cells[this.expandedIndex].type === GrowingFormFieldType.TEXTAREA) && this.currentTextField) {
 			this.currentTextField.blur();
 		}
 		if (this.callbacks[GrowingFormEvent.SUBMIT]) {
@@ -267,9 +263,7 @@ class GrowingForm {
 					});
 					contentView.add(textField);
 					break;
-				case GrowingFormFieldType.TEXT:
-				case GrowingFormFieldType.EMAIL:
-				case GrowingFormFieldType.NUMBER: {
+				case GrowingFormFieldType.TEXT: {
 					textField = this._createTextField({
 						cell: cell,
 						onChange: validation
@@ -364,6 +358,17 @@ class GrowingForm {
 			const cell = this.cells[this.expandedIndex];
 			const value = this.formData[cell.identifier];
 
+			if (this.cells[this.expandedIndex].type === GrowingFormFieldType.TEXT
+				|| this.cells[this.expandedIndex].type === GrowingFormFieldType.TEXTAREA) {
+				console.log('drin');
+				if (this.options.focusNexField === true) {
+					console.log('dran');
+					setTimeout(() => {
+						this.focus();
+					}, 200);
+				}
+			}
+
 			this.callbacks[GrowingFormEvent.STEP](this.currentTextField, this.expandedIndex + 1, this._validateFromType(cell, value));
 		}
 
@@ -379,13 +384,14 @@ class GrowingForm {
 		const options = cell.options || {};
 
 		const textArea = Ti.UI.createTextArea({
+			id: identifier,
 			top: 8,
 			left: 0,
 			width: 280,
 			height: 120,
 			color: '#000',
 			hintTextColor: '#bebebe',
-			padding: { left: 5, right: 5 },
+			padding: { left: 5, right: 5, top: 5, bottom: 5 },
 			borderRadius: 4,
 			backgroundColor: '#eee',
 			value: this.formData[identifier] || ''
@@ -416,6 +422,7 @@ class GrowingForm {
 		const options = cell.options || {};
 
 		const textField = Ti.UI.createTextField({
+			id: identifier,
 			top: 8,
 			left: 0,
 			width: 280,
@@ -427,19 +434,6 @@ class GrowingForm {
 			backgroundColor: '#eee',
 			value: this.formData[identifier] || ''
 		});
-
-		switch (cell.type) {
-			case GrowingFormFieldType.NUMBER:
-				textField.keyboardType = Ti.UI.KEYBOARD_TYPE_NUMBER_PAD;
-				break;
-			case GrowingFormFieldType.EMAIL:
-				textField.autocapitalization = Ti.UI.TEXT_AUTOCAPITALIZATION_NONE
-				textField.keyboardType = Ti.UI.KEYBOARD_TYPE_EMAIL;
-				break;
-			default:
-				textField.keyboardType = Ti.UI.KEYBOARD_TYPE_DEFAULT;
-				break;
-		}
 
 		// Reference a reference in our scope to blur it, if it is the last form input
 		this.currentTextField = textField;
@@ -575,8 +569,6 @@ class GrowingForm {
 const GrowingFormFieldType = {
 	TEXT: 'text',
 	TEXTAREA: 'textarea',
-	EMAIL: 'email',
-	NUMBER: 'number',
 	CHECKBOX: 'checkbox',
 	DROPDOWN: 'dropdown'
 };
