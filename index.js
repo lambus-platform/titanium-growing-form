@@ -568,7 +568,7 @@ class GrowingForm {
 
 const GrowingFormFieldType = {
 	TEXT: 'text',
-	TEXTAREA: 'textarea',
+	TEXTAREA: 'textArea',
 	CHECKBOX: 'checkbox',
 	DROPDOWN: 'dropdown'
 };
